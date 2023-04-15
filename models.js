@@ -20,15 +20,13 @@ const LocationSchema = new BaseSchema({
     fullAddress: { type: String },
 });
 
-const DishType = ["veg", "veg_egg", "non_veg"];
-
 
 const DishSchema = new BaseSchema({
     name: { type: String, required: true },
     description: { type: String },
     price: { type: String, required: true },
     category: { type: String, required: true },
-    dishType: { type: String, required: true, enum: DishType },
+    dishType: { type: String, required: true },
     specialTag: { type: String, enum: ["Bestseller"] }
 });
 
@@ -52,7 +50,7 @@ const RestaurantSchema = new BaseSchema({
     imageUrl: { type: String },
     contacts: { type: [String], default: [] },
     location: { type: LocationSchema, required: true },
-    priceBand: { type: Number, min: 0 },
+    priceBand: { type: String },
     cuisineTags: { type: [String], default: [] },
     dishes: { type: [DishSchema], required: true },
     todaySpecial: { type: TodaySpecialSchema },

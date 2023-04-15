@@ -30,9 +30,36 @@ var dishNameSearchIndex = new MiniSearch({ fields: ['dishName'], storeFields: ['
 var resaturantByNameAndDishesSearchIndex = new MiniSearch({ fields: ['name', 'dishes', 'isActive'], storeFields: ['id', 'isActive'], idField: 'id' });
 var uniqueDishNames = new Set();
 
+function serializeRestaurantTiming(timing) {
+  function serializeTime(value) {
+    var hours = parseInt(value.split(':')[0]);
+    var minutes = parseInt(value.split(':')[1]);
 
+    const mt = hours < 12 ? 'am' : 'pm';
+    if(hours > 12) hours = hours - 12;
 
+    if (minutes == 0) return `${hours}${mt}`;
 
+    return `${hours}.${minutes}${mt}`;
+  }
+  const opensAt = serializeTime(timing.split('-')[0].trim());
+  const closesAt = serializeTime(timing.split('-')[1].trim());
+  return `${opensAt} - ${closesAt}`;
+}
+
+function serializeRestaurantsForResponse(restaurants) {
+  // transform restaurants data according to FE
+  const serializedData = restaurants.map(res => res.toJSON());
+  for (var data of serializedData) {
+    data.dineInServiceTimings = data.dineInServiceTimings.map(timing => serializeRestaurantTiming(timing));
+    data.deliveryServiceTimings = data.deliveryServiceTimings.map(timing => serializeRestaurantTiming(timing));
+
+    if (data.serviceType == 'Both') {
+      data.serviceType = "Dine In & Delivery";
+    }
+  }
+  return serializedData;
+};
 
 
 function filter_active_restaurants(allRestaurants) {
@@ -126,7 +153,7 @@ async function pre_process_search_index_from_scratch(restaurants) {
 }
 
 
-async function get_and_cache_all_restaurants({ returnOnlyActive = true, resetCache = false }= {}) {
+async function get_and_cache_all_restaurants({ returnOnlyActive = true, resetCache = false } = {}) {
   if (resetCache) { isCached = false; allRestaurantsByIdCached = {}; }
 
   var allRestaurants;
@@ -149,7 +176,6 @@ async function get_and_cache_all_restaurants({ returnOnlyActive = true, resetCac
 
 const myLogger = function (req, res, next) {
   console.log(`request hit: ${req.originalUrl}`)
-  console.log(req.headers);
   next();
 }
 app.use(myLogger);
@@ -206,35 +232,37 @@ app.post("/restaurants/search", async (req, res) => {
   for (var result of searchResults) {
     restaurants.push(allRestaurantsById[result.id]);
   }
-
-  return res.send(restaurants).status(200);
+  return res.send(serializeRestaurantsForResponse(restaurants)).status(200);
 });
 
 app.get("/restaurants/all", async (req, res) => {
   var allRestaurants = await get_and_cache_all_restaurants();
-  return res.send(allRestaurants).status(200);
+  return res.send(serializeRestaurantsForResponse(allRestaurants)).status(200);
 });
 
 app.post("/restaurants/by_location", async (req, res) => {
-  let body = req.body;
-  let distanceFilter = body.distanceFilter;
-  if (!distanceFilter) distanceFilter = 3;
-
-  const currentLocation = { latitude: body.currenctLocation.latitude, longitude: body.currenctLocation.longitude };
+  const currentLocation = { latitude: req.headers.latitude, longitude: req.headers.longitude };
+  
+  
+  const distanceFilter = 10; // searching in 10 kms of radius
 
   const allRestaurants = await get_and_cache_all_restaurants();
-  const filteredRestaurants = [];
+  var filteredRestaurants = [];
+  const distances = []
   for (var restaurant of allRestaurants) {
     const resLocation = { latitude: restaurant.location.latitude, longitude: restaurant.location.longitude }
     const distance = haversine(currentLocation, resLocation) / 1000; // in km
     if (distance <= distanceFilter && restaurant.metadata.isActive) {
-      // todo: update restaurant fields in results if any needed before returning from API
-      restaurant.distance = distance.toFixed(2);
+      distances.push(distance.toFixed(2));
       filteredRestaurants.push(restaurant)
     }
   }
 
-  filteredRestaurants.sort((a, b) => { })
+  filteredRestaurants = serializeRestaurantsForResponse(filteredRestaurants);
+  for (var index in filteredRestaurants) {
+    filteredRestaurants[index].distance = distances[index];
+  }
+  filteredRestaurants.sort((a, b) => { a.distance < b.distance });
 
   return res.send(filteredRestaurants).status(200);
 });
