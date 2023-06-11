@@ -16,11 +16,6 @@ app.use(bodyParser.json())
 const cors = require("cors");
 app.use(cors());
 
-var PORT = 3000;
-app.listen(PORT, err => {
-  if (err) console.log(`err while starting server ${err}`);
-  console.log(`Server listening on port ${PORT}`);
-});
 
 // cached restaurants in memory
 var allRestaurantsByIdCached = {};
@@ -352,3 +347,8 @@ var dailyCronJob = cron.schedule('0 3 * * *', async () => {
 );
 dailyCronJob.start()
 
+var PORT = process.env.PORT || 3000;
+app.listen(PORT, err => {
+  if (err) console.log(`err while starting server ${err}`);
+  console.log(`Server listening on port ${PORT}`);
+});
