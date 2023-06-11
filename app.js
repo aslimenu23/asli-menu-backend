@@ -12,10 +12,6 @@ initDatabaseConnection();
 const app = express();
 app.use(bodyParser.json())
 
-// TODO: only use cors for local testing
-const cors = require("cors");
-app.use(cors());
-
 
 // cached restaurants in memory
 var allRestaurantsByIdCached = {};
@@ -347,8 +343,10 @@ var dailyCronJob = cron.schedule('0 3 * * *', async () => {
 );
 dailyCronJob.start()
 
-var PORT = process.env.PORT || 3000;
+var PORT = process.env.PORT || 6000;
 app.listen(PORT, err => {
   if (err) console.log(`err while starting server ${err}`);
   console.log(`Server listening on port ${PORT}`);
 });
+
+module.exports = app

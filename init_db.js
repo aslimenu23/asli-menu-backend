@@ -3,7 +3,7 @@ const { RestaurantModel } = require("./models")
 const { RestaurantAnalyticsModel } = require("./analytics/models");
 
 module.exports = async function initDatabaseConnection() {
-    const mongoUri = "mongodb+srv://aslimenufreecluster:5xxJlDY2Opgar6IC@aslimenu0.io4olw1.mongodb.net/?retryWrites=true&w=majority";
+    const mongoUri = process.env.MONGO_URI;
     mongoose.set('strictQuery', false);
     return new Promise((resolve, reject) => {
         mongoose.connect(mongoUri, { dbName: "AsliMenu" }).then(connected => {
