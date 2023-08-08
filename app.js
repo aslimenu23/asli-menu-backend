@@ -3,31 +3,34 @@ const { RestaurantModel } = require("./models")
 const { RestaurantAnalyticsModel } = require("./analytics/models");
 const haversine = require('haversine-distance')
 const cron = require('node-cron');
-const bodyParser = require('body-parser')
-const MiniSearch = require('minisearch')
-const initDatabaseConnection = require('./init_db')
+const bodyParser = require('body-parser');
+const initDatabaseConnection = require('./init_db');
+const { restaurantNameSearchIndex, dishNameSearchIndex, resaturantByNameAndDishesSearchIndex, uniqueDishNames, pre_process_search_index_from_scratch } = require('./caching');
 
+// initialise database connection
 initDatabaseConnection();
 
 const app = express();
-app.use(bodyParser.json())
+app.use(bodyParser.json());
 
+const myLogger = function (req, res, next) {
+  console.log(`request hit: ${req.originalUrl}`)
+  next();
+}
+app.use(myLogger);
 
 // cached restaurants in memory
 var allRestaurantsByIdCached = {};
 var isCached = false;
-var restaurantNameSearchIndex = new MiniSearch({ fields: ['name'], storeFields: ['name', 'id', 'isActive'], idField: 'id' });
-var dishNameSearchIndex = new MiniSearch({ fields: ['dishName'], storeFields: ['dishName'], idField: 'dishName' });
-var resaturantByNameAndDishesSearchIndex = new MiniSearch({ fields: ['name', 'dishes', 'isActive'], storeFields: ['id', 'isActive'], idField: 'id' });
-var uniqueDishNames = new Set();
 
+// convert 24 hour time format to 12 hour time format  
 function serializeRestaurantTiming(timing) {
   function serializeTime(value) {
     var hours = parseInt(value.split(':')[0]);
     var minutes = parseInt(value.split(':')[1]);
 
     const mt = hours < 12 ? 'am' : 'pm';
-    if(hours > 12) hours = hours - 12;
+    if (hours > 12) hours = hours - 12;
 
     if (minutes == 0) return `${hours}${mt}`;
 
@@ -38,8 +41,8 @@ function serializeRestaurantTiming(timing) {
   return `${opensAt} - ${closesAt}`;
 }
 
+// transform restaurants data as needed by Frontend
 function serializeRestaurantsForResponse(restaurants) {
-  // transform restaurants data according to FE
   const serializedData = restaurants.map(res => res.toJSON());
   for (var data of serializedData) {
     data.dineInServiceTimings = data.dineInServiceTimings.map(timing => serializeRestaurantTiming(timing));
@@ -53,6 +56,7 @@ function serializeRestaurantsForResponse(restaurants) {
 };
 
 
+// extract only active restaurants
 function filter_active_restaurants(allRestaurants) {
   var filteredRestaurants = []
   for (var restaurant of allRestaurants) {
@@ -99,53 +103,13 @@ function on_restaurant_add_or_update(restaurant) {
 
 }
 
-async function pre_process_search_index_from_scratch(restaurants) {
-  // empty the current search indices and helper variables
-  restaurantNameSearchIndex.removeAll();
-  dishNameSearchIndex.removeAll();
-  resaturantByNameAndDishesSearchIndex.removeAll();
-  uniqueDishNames = new Set();
-
-  // build indices from scratch
-  var nameDocs = [];
-  var nameAndDishesDocs = [];
-  for (var restaurant of restaurants) {
-    nameDocs.push({
-      'id': restaurant.id,
-      'name': restaurant.name.toLowerCase(),
-      'isActive': restaurant.metadata.isActive,
-    });
-
-    var dishNames = []
-    for (var dish of restaurant.dishes) {
-      var dishName = dish.name.toLowerCase();
-      dishNames.push(dishName);
-      uniqueDishNames.add(dishName);
-    }
-
-    nameAndDishesDocs.push({
-      'id': restaurant.id,
-      'name': restaurant.name.toLowerCase(),
-      'dishes': dishNames,
-      'isActive': restaurant.metadata.isActive,
-    });
-  }
-
-  var dishDocs = []
-  for (var dishName of uniqueDishNames) {
-    dishDocs.push({ 'dishName': dishName });
-  }
-
-  await Promise.all([
-    restaurantNameSearchIndex.addAllAsync(nameDocs),
-    dishNameSearchIndex.addAllAsync(dishDocs),
-    resaturantByNameAndDishesSearchIndex.addAllAsync(nameAndDishesDocs),
-  ])
-}
 
 
 async function get_and_cache_all_restaurants({ returnOnlyActive = true, resetCache = false } = {}) {
-  if (resetCache) { isCached = false; allRestaurantsByIdCached = {}; }
+  if (resetCache) {
+    // empty the cached values    
+    isCached = false; allRestaurantsByIdCached = {};
+  }
 
   var allRestaurants;
   if (isCached) {
@@ -164,12 +128,6 @@ async function get_and_cache_all_restaurants({ returnOnlyActive = true, resetCac
   else return allRestaurants;
 }
 
-
-const myLogger = function (req, res, next) {
-  console.log(`request hit: ${req.originalUrl}`)
-  next();
-}
-app.use(myLogger);
 
 app.post("/restaurants/search_suggestions", async (req, res) => {
   var searchText = req.body.searchText;
@@ -233,8 +191,8 @@ app.get("/restaurants/all", async (req, res) => {
 
 app.post("/restaurants/by_location", async (req, res) => {
   const currentLocation = { latitude: req.headers.latitude, longitude: req.headers.longitude };
-  
-  
+
+
   const distanceFilter = 10; // searching in 10 kms of radius
 
   const allRestaurants = await get_and_cache_all_restaurants();
