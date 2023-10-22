@@ -1,6 +1,4 @@
 const mongoose = require("mongoose");
-const { RestaurantModel } = require("./models")
-const { RestaurantAnalyticsModel } = require("./analytics/models");
 
 module.exports = async function initDatabaseConnection() {
     const mongoUri = process.env.MONGO_URI;
