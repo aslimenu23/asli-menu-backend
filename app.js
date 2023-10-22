@@ -6,6 +6,7 @@ const cron = require("node-cron");
 const bodyParser = require("body-parser");
 const MiniSearch = require("minisearch");
 const initDatabaseConnection = require("./init_db");
+const logger = require("./logger");
 
 initDatabaseConnection();
 
@@ -19,12 +20,10 @@ app.get("/user/", async (req, res) => {
     return res.status(400).send("Phone number required");
   }
 
-  try {
-    const user = await UserModel.findOne({ phoneNumber: phone });
-    return res.status(200).json(user);
-  } catch (error) {
-    console.log("error");
-  }
+  const user = await UserModel.findOne({ phoneNumber: phone });
+  if (!user) return res.status(404).send("User not found");
+
+  return res.status(200).json(user);
 });
 
 app.post("/user/", async (req, res) => {
@@ -34,7 +33,7 @@ app.post("/user/", async (req, res) => {
   return res.status(200).json(user);
 });
 
-app.post("/restaurants/add", async (req, res) => {
+app.post("/restaurant", async (req, res) => {
   let body = req.body;
 
   let restaurant = new RestaurantModel({
@@ -76,6 +75,9 @@ app.post("/restaurants/add", async (req, res) => {
       };
     } else restaurant.takeAwayDetails = body.takeAwayDetails;
   }
+
+  await restaurant.save();
+  return res.status(200).json(restaurant);
 });
 
 var PORT = process.env.PORT || 6000;
