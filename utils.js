@@ -1,6 +1,6 @@
 const axios = require("axios");
 
-export const getCoordinatesFromGmapLink = async (mapLink) => {
+const getCoordinatesFromGmapLink = async (mapLink) => {
   const response = await axios.get(mapLink);
   const expression =
     /window.APP_INITIALIZATION_STATE=\[\[\[\d+.\d+,(\d+.\d+),(\d+.\d+)/;
@@ -10,3 +10,5 @@ export const getCoordinatesFromGmapLink = async (mapLink) => {
     .split(",");
   return { lat, long };
 };
+
+module.exports = { getCoordinatesFromGmapLink };

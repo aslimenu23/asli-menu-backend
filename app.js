@@ -12,6 +12,12 @@ const { getCoordinatesFromGmapLink } = require("./utils");
 initDatabaseConnection();
 
 const app = express();
+
+if (process.env.ENVIRONMENT == "dev") {
+  const cors = require("cors");
+  app.use(cors);
+}
+
 app.use(bodyParser.json());
 
 app.get("/user/:uid", async (req, res) => {
@@ -84,4 +90,4 @@ app.listen(PORT, (err) => {
   console.log(`Server listening on port ${PORT}`);
 });
 
-export default app;
+module.exports = app;

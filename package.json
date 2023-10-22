@@ -6,7 +6,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node app.js",
-    "start-local": "source config.dev.sh && node app.dev.js"
+    "start-local": "source config.dev.sh && node app.js"
   },
   "keywords": [],
   "author": "",
