@@ -23,7 +23,7 @@ class BaseSchema extends Schema {
 const UserSchema = new BaseSchema({
   uid: { type: String, required: true },
   name: { type: String, required: true },
-  phoneNumber: { type: String, required: true , },
+  phoneNumber: { type: String, required: true },
 });
 
 const LocationSchema = new BaseSchema({
@@ -121,4 +121,9 @@ const RestaurantEditModel = mongoose.model(
   RestaurantEditSchema
 );
 
-module.exports = {RestaurantEditModel, RestaurantModel, UserModel, UserWithRestaurantModel}
+module.exports = {
+  RestaurantEditModel,
+  RestaurantModel,
+  UserModel,
+  UserWithRestaurantModel,
+};

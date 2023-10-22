@@ -7,6 +7,7 @@ const bodyParser = require("body-parser");
 const MiniSearch = require("minisearch");
 const initDatabaseConnection = require("./init_db");
 const logger = require("./logger");
+const { getCoordinatesFromGmapLink } = require("./utils");
 
 initDatabaseConnection();
 
@@ -17,7 +18,7 @@ app.get("/user/:uid", async (req, res) => {
   const uid = req.params.uid;
 
   const user = await UserModel.findOne({ uid: uid });
-  if (!user) return res.status(404).send("User not found");
+  if (!user) return res.status(200).json({ isNewUser: true });
 
   return res.status(200).json(user);
 });
@@ -42,12 +43,13 @@ app.post("/restaurant", async (req, res) => {
     metadata: body.metadata,
   });
 
-  const mapLink = body.location.gmapLink;
-  // TODO: convert mapLink to coordinates
+  //TODO: validate that map link should be of google maps only
+  const gmapLink = body.location.gmapLink;
+  const coordinates = await getCoordinatesFromGmapLink(gmapLink);
   const location = {
-    gmapLink: mapLink,
-    latitude: 0,
-    longitude: 0,
+    gmapLink: gmapLink,
+    latitude: coordinates["lat"],
+    longitude: coordinates["long"],
     areaName: body.location.areaName,
     fullAddress: body.location.fullAddress,
   };
@@ -82,4 +84,4 @@ app.listen(PORT, (err) => {
   console.log(`Server listening on port ${PORT}`);
 });
 
-module.exports = app;
+export default app;

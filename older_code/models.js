@@ -21,7 +21,7 @@ const LocationSchema = new BaseSchema({
   fullAddress: { type: String },
 });
 
-const DishTypeEnum = ["veg", "veg_egg", "non_veg"]
+const DishTypeEnum = ["veg", "veg_egg", "non_veg"];
 
 const DishSchema = new BaseSchema({
   name: { type: String, required: true },
@@ -29,13 +29,11 @@ const DishSchema = new BaseSchema({
   price: { type: String, required: true },
   category: { type: String, required: true },
   dishType: { type: DishTypeEnum, required: true },
-  isRecommended: {type: Boolean, default: false},
+  isRecommended: { type: Boolean, default: false },
   specialTag: { type: String, enum: ["Bestseller"] },
 });
 
-
 const TodaySpecialSchema = new BaseSchema({
-
   dish: { type: DishSchema, required: true },
   asOfDate: { type: Date, default: Date.now() },
 });
