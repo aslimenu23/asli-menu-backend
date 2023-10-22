@@ -13,14 +13,10 @@ initDatabaseConnection();
 const app = express();
 app.use(bodyParser.json());
 
-app.get("/user/", async (req, res) => {
-  const phone = req.body.phoneNumber;
-  // TODO: validations
-  if (!phone) {
-    return res.status(400).send("Phone number required");
-  }
+app.get("/user/:uid", async (req, res) => {
+  const uid = req.params.uid;
 
-  const user = await UserModel.findOne({ phoneNumber: phone });
+  const user = await UserModel.findOne({ uid: uid });
   if (!user) return res.status(404).send("User not found");
 
   return res.status(200).json(user);
