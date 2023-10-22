@@ -27,6 +27,13 @@ app.get("/user/", async (req, res) => {
   }
 });
 
+app.post("/user/", async (req, res) => {
+  // TODO: validations
+  const user = new UserModel(req.body);
+  await user.save();
+  return res.status(200).json(user);
+});
+
 app.post("/restaurants/add", async (req, res) => {
   let body = req.body;
 
