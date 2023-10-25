@@ -1,22 +1,68 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
+const softDeletePlugin = require("./soft_delete_plugin");
 
 class BaseSchema extends Schema {
-  constructor(schema) {
-    super(schema);
+  constructor(schema, options) {
+    super(schema, options);
+
     this.set("toJSON", {
       virtuals: true,
       transform: (doc, converted) => {
         delete converted._id;
+        delete converted.__v;
       },
     });
     this.set("toObject", { virtuals: true });
 
     this.add({
-      isDeleted: { type: Boolean, default: false },
       createdAt: { type: Date, default: Date.now },
       updatedAt: { type: Date, default: Date.now },
     });
+
+    function updateIdFilter(filter = {}) {
+      if ("id" in filter) {
+        filter._id = filter.id;
+        delete filter.id;
+      }
+    }
+
+    [
+      "find",
+      "findOne",
+      "updateOne",
+      "updateMany",
+      "deleteOne",
+      "deleteMany",
+    ].forEach((type) => {
+      this.pre(type, function (next) {
+        updateIdFilter(this._conditions);
+        next();
+      });
+    });
+
+    this.pre("save", function (next) {
+      this.updatedAt = new Date();
+
+      next();
+    });
+
+    this.pre("updateOne", { document: true, query: false }, function (next) {
+      this.updatedAt = new Date();
+      next();
+    });
+
+    this.pre("updateOne", { document: false, query: true }, function (next) {
+      this._update.updatedAt = new Date();
+      next();
+    });
+
+    this.pre("updateMany", { document: false, query: true }, function (next) {
+      this._update.updatedAt = new Date();
+      next();
+    });
+
+    this.plugin(softDeletePlugin);
   }
 }
 
@@ -101,12 +147,20 @@ const RestaurantSchema = new BaseSchema({
 
 const RestaurantEditSchema = new BaseSchema({
   editState: { type: String, enum: RestaurantState, default: "IN_REVIEW" },
-  restaurant: { type: mongoose.Schema.Types.ObjectId, ref: "Restaurant" },
+  restaurant: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Restaurant",
+    required: true,
+  },
 });
 
 const UserWithRestaurantSchema = new BaseSchema({
-  user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-  restaurant: { type: mongoose.Schema.Types.ObjectId, ref: "Restaurant" },
+  user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+  restaurant: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Restaurant",
+    required: true,
+  },
 });
 
 const UserModel = mongoose.model("User", UserSchema);
