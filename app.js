@@ -1,5 +1,10 @@
 const express = require("express");
-const { RestaurantModel, UserModel } = require("./models");
+const {
+  RestaurantModel,
+  UserModel,
+  UserWithRestaurantModel,
+  RestaurantEditModel,
+} = require("./models");
 const { RestaurantAnalyticsModel } = require("./analytics/models");
 const haversine = require("haversine-distance");
 const cron = require("node-cron");
@@ -20,13 +25,22 @@ if (process.env.ENVIRONMENT == "dev") {
 
 app.use(bodyParser.json());
 
-app.get("/user/:uid", async (req, res) => {
-  const uid = req.params.uid;
+app.get("user/:id", async (req, res) => {
+  const id = req.params.id;
+  const user = await UserModel.get_object({ id: id });
 
-  const user = await UserModel.findOne({ uid: uid });
-  if (!user) return res.status(200).json({ isNewUser: true });
+  if (!user) return res.status(404).send("Invalid userId");
 
   return res.status(200).json(user);
+});
+
+app.post("/user/isnewuser/", async (req, res) => {
+  const phoneNumber = req.body.phoneNumber;
+
+  const user = await UserModel.get_object({ phoneNumber: phoneNumber });
+
+  if (!user) return res.status(200).json({ isNewUser: true });
+  return res.status(200).json({ ...user.toJSON(), isNewUser: false });
 });
 
 app.post("/user/", async (req, res) => {
@@ -36,7 +50,8 @@ app.post("/user/", async (req, res) => {
   return res.status(200).json(user);
 });
 
-app.post("/restaurant", async (req, res) => {
+// TODO: link to UserWithRestaurant
+app.post("/restaurant/", async (req, res) => {
   let body = req.body;
 
   let restaurant = new RestaurantModel({
@@ -81,6 +96,12 @@ app.post("/restaurant", async (req, res) => {
   }
 
   await restaurant.save();
+
+  await UserWithRestaurantModel({
+    user: req.headers.user,
+    restaurant: restaurant.id,
+  }).save();
+
   return res.status(200).json(restaurant);
 });
 
