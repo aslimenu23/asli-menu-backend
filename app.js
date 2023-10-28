@@ -25,9 +25,9 @@ if (process.env.ENVIRONMENT == "dev") {
 
 app.use(bodyParser.json());
 
-app.get("user/:id", async (req, res) => {
-  const id = req.params.id;
-  const user = await UserModel.get_object({ id: id });
+app.get("/user/:uid", async (req, res) => {
+  const uid = req.params.uid;
+  const user = await UserModel.get_object({ uid });
 
   if (!user) return res.status(404).send("Invalid userId");
 

@@ -80,14 +80,9 @@ const LocationSchema = new BaseSchema({
   fullAddress: { type: String },
 });
 
-const TimeOfDaySchema = new BaseSchema({
-  hour: { type: Number, required: true },
-  minute: { type: Number, required: true },
-});
-
 const TimePeriodSchema = new BaseSchema({
-  startTime: { type: TimeOfDaySchema, required: true },
-  endTime: { type: TimeOfDaySchema, required: true },
+  startTime: { type: String, required: true },
+  endTime: { type: String, required: true },
 });
 
 const ServingDetailsSchema = new BaseSchema({
