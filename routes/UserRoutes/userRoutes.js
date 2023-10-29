@@ -1,14 +1,6 @@
 const express = require("express");
-const {
-  UserModel,
-  UserWithRestaurantModel,
-  RestaurantEditModel,
-} = require("../../models/models");
-const { validateUserMiddleware } = require("../../middlewares/middlewares");
+const { UserModel } = require("../../models/models");
 const router = express.Router();
-
-const userRestaurantRouter = require("./restaurantRoutes");
-router.use("/restaurant", userRestaurantRouter);
 
 router.post("/", async (req, res) => {
   // TODO: validations

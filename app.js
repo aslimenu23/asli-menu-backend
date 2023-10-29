@@ -16,7 +16,9 @@ if (process.env.ENVIRONMENT == "dev") {
 app.use(bodyParser.json());
 
 const userRouter = require("./routes/UserRoutes/userRoutes");
+const partnerRestaurantRouter = require("./routes/PartnerRoutes/restaurantRoutes");
 app.use("/user", userRouter);
+app.use("/partner/restaurant", partnerRestaurantRouter);
 
 var PORT = process.env.PORT || 6000;
 app.listen(PORT, (err) => {
