@@ -4,12 +4,9 @@ const {
   UserModel,
   UserWithRestaurantModel,
   RestaurantEditModel,
-} = require("./models");
-const { RestaurantAnalyticsModel } = require("./analytics/models");
-const haversine = require("haversine-distance");
-const cron = require("node-cron");
+  RestaurantState,
+} = require("./models/models");
 const bodyParser = require("body-parser");
-const MiniSearch = require("minisearch");
 const initDatabaseConnection = require("./init_db");
 const logger = require("./logger");
 const { getCoordinatesFromGmapLink } = require("./utils");
@@ -50,8 +47,18 @@ app.post("/user/", async (req, res) => {
   return res.status(200).json(user);
 });
 
-// TODO: link to UserWithRestaurant
-app.post("/restaurant/", async (req, res) => {
+async function validateUserMiddleware(req, res, next) {
+  const userId = req.headers.user;
+  if (!userId)
+    return res.status(403).send("This route requires authenticated user");
+
+  const user = await UserModel.get_object({ id: userId });
+  if (!user) return res.status(403).send("Invalid UserId in request headers");
+  req.headers.user = user;
+  next();
+}
+
+app.post("/restaurant/", validateUserMiddleware, async (req, res) => {
   let body = req.body;
 
   let restaurant = new RestaurantModel({
@@ -96,9 +103,13 @@ app.post("/restaurant/", async (req, res) => {
   }
 
   await restaurant.save();
+  await RestaurantEditModel({
+    editValue: restaurant,
+    restaurant: restaurant.id,
+  }).save();
 
   await UserWithRestaurantModel({
-    user: req.headers.user,
+    user: req.headers.user.id,
     restaurant: restaurant.id,
   }).save();
 

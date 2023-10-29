@@ -1,4 +1,4 @@
-const softDeletePlugin = (schema) => {
+const softCRUDPlugin = (schema) => {
   schema.add({
     isDeleted: {
       type: Boolean,
@@ -71,5 +71,10 @@ const softDeletePlugin = (schema) => {
   schema.statics.get_object_including_deleted = function (filter = {}) {
     return this.findOne(filter);
   };
+
+  // update (on document level)
+  schema.methods.update = function (updates) {
+    return this.updateOne(updates);
+  };
 };
-module.exports = softDeletePlugin;
+module.exports = { softCRUDPlugin };
