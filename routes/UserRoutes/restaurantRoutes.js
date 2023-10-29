@@ -155,7 +155,7 @@ router.post("/:id", validateUserHasAccessToRestaurant, async (req, res) => {
 });
 
 router.post(
-  "/restaurant/:id/menu",
+  "/:id/menu",
   validateUserHasAccessToRestaurant,
   async (req, res) => {
     // TODO: calculate if there are actually any changes in menu
@@ -176,7 +176,7 @@ router.post(
 
 // This API can only be accessed by special accounts (admins)
 // API to set the state of restaurant
-router.post("/restaurant/:id/state", validateAdminUser, async (req, res) => {
+router.post("/:id/state", validateAdminUser, async (req, res) => {
   const newState = req.body.state;
 
   const resEdit = await RestaurantEditModel.get_object({
