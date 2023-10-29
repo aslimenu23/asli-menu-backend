@@ -9,6 +9,7 @@ const UserSchema = new BaseModelSchema({
   uid: { type: String, required: true },
   name: { type: String, required: true },
   phoneNumber: { type: String, required: true },
+  isAdmin: { type: Boolean, default: false },
 });
 
 const LocationSchema = new EmbeddedDocSchema({
@@ -41,6 +42,7 @@ const FacilitiesSchema = new EmbeddedDocSchema({
   valetParking: { type: Boolean },
 });
 
+// A restaurant can be approved of its details but still may not active due to subcription or other reasons.
 const RestaurantState = StrModelChoices([
   "IN_REVIEW",
   "DIS_APPROVED",
@@ -63,7 +65,7 @@ const RestaurantMetadataSchema = new EmbeddedDocSchema({
   state: {
     type: String,
     enum: Object.keys(RestaurantState),
-    default: "IN_REVIEW",
+    default: RestaurantState.IN_REVIEW,
   },
   onboardedOn: { type: Date, default: Date.now },
   subscriptionExpiresOn: { type: Date },
@@ -86,7 +88,10 @@ const RestaurantSchema = new BaseModelSchema({
 
   menu: { type: [DishSchema], default: [] },
 
-  metadata: { type: RestaurantMetadataSchema, default: { state: "IN_REVIEW" } },
+  metadata: {
+    type: RestaurantMetadataSchema,
+    default: { state: RestaurantState.IN_REVIEW },
+  },
 });
 
 const DisApprovalReasonDetail = new EmbeddedDocSchema({
@@ -106,7 +111,7 @@ const RestaurantEditSchema = new BaseModelSchema({
   state: {
     type: String,
     enum: Object.keys(RestaurantState),
-    default: "IN_REVIEW",
+    default: RestaurantState.IN_REVIEW,
   },
   editValue: { type: RestaurantSchema, required: true },
   restaurant: {
@@ -116,6 +121,13 @@ const RestaurantEditSchema = new BaseModelSchema({
   },
   reasonsForDisApproval: { type: ReasonsForDisApproval },
   updatedFields: { type: [String], default: [] },
+  reasonForInactive: { type: String },
+});
+RestaurantEditSchema.pre("find", function () {
+  this.populate("restaurant");
+});
+RestaurantEditSchema.pre("findOne", function () {
+  this.populate("restaurant");
 });
 
 const UserWithRestaurantSchema = new BaseModelSchema({

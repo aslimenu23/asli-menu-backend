@@ -1,19 +1,12 @@
 const express = require("express");
-const {
-  RestaurantModel,
-  UserModel,
-  UserWithRestaurantModel,
-  RestaurantEditModel,
-  RestaurantState,
-} = require("./models/models");
 const bodyParser = require("body-parser");
 const initDatabaseConnection = require("./init_db");
 const logger = require("./logger");
-const { getCoordinatesFromGmapLink } = require("./utils");
 
 initDatabaseConnection();
 
 const app = express();
+exports.app = app;
 
 if (process.env.ENVIRONMENT == "dev") {
   const cors = require("cors");
@@ -22,99 +15,8 @@ if (process.env.ENVIRONMENT == "dev") {
 
 app.use(bodyParser.json());
 
-app.get("/user/:uid", async (req, res) => {
-  const uid = req.params.uid;
-  const user = await UserModel.get_object({ uid });
-
-  if (!user) return res.status(404).send("Invalid userId");
-
-  return res.status(200).json(user);
-});
-
-app.post("/user/isnewuser/", async (req, res) => {
-  const phoneNumber = req.body.phoneNumber;
-
-  const user = await UserModel.get_object({ phoneNumber: phoneNumber });
-
-  if (!user) return res.status(200).json({ isNewUser: true });
-  return res.status(200).json({ ...user.toJSON(), isNewUser: false });
-});
-
-app.post("/user/", async (req, res) => {
-  // TODO: validations
-  const user = new UserModel(req.body);
-  await user.save();
-  return res.status(200).json(user);
-});
-
-async function validateUserMiddleware(req, res, next) {
-  const userId = req.headers.user;
-  if (!userId)
-    return res.status(403).send("This route requires authenticated user");
-
-  const user = await UserModel.get_object({ id: userId });
-  if (!user) return res.status(403).send("Invalid UserId in request headers");
-  req.headers.user = user;
-  next();
-}
-
-app.post("/restaurant/", validateUserMiddleware, async (req, res) => {
-  let body = req.body;
-
-  let restaurant = new RestaurantModel({
-    name: body.name,
-    description: body.description,
-    cuisines: body.cuisines,
-    contacts: body.contacts,
-    avgPrice: body.avgPrice,
-    facilities: body.facilities,
-    metadata: body.metadata,
-  });
-
-  //TODO: validate that map link should be of google maps only
-  const gmapLink = body.location.gmapLink;
-  const coordinates = await getCoordinatesFromGmapLink(gmapLink);
-  const location = {
-    gmapLink: gmapLink,
-    latitude: coordinates["lat"],
-    longitude: coordinates["long"],
-    areaName: body.location.areaName,
-    fullAddress: body.location.fullAddress,
-  };
-  restaurant.location = location;
-
-  restaurant.dineInDetails = body.dineInDetails;
-
-  if (body.takeAwayDetails) {
-    if (body.takeAwayDetails.sameAsDineIn) {
-      delete body.takeAwayDetails.sameAsDineIn;
-      restaurant.takeAwayDetails = restaurant.dineInDetails;
-    } else restaurant.takeAwayDetails = body.takeAwayDetails;
-  }
-
-  if (body.deliveryDetails) {
-    if (body.deliveryDetails.sameAsDineIn) {
-      delete body.deliveryDetails.sameAsDineIn;
-      restaurant.deliveryDetails = {
-        ...restaurant.dineInDetails,
-        ...body.deliveryDetails,
-      };
-    } else restaurant.takeAwayDetails = body.takeAwayDetails;
-  }
-
-  await restaurant.save();
-  await RestaurantEditModel({
-    editValue: restaurant,
-    restaurant: restaurant.id,
-  }).save();
-
-  await UserWithRestaurantModel({
-    user: req.headers.user.id,
-    restaurant: restaurant.id,
-  }).save();
-
-  return res.status(200).json(restaurant);
-});
+const userRouter = require("./routes/UserRoutes/userRoutes");
+app.use("/user", userRouter);
 
 var PORT = process.env.PORT || 6000;
 app.listen(PORT, (err) => {

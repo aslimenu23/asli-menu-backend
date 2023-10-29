@@ -5,15 +5,30 @@ const {
   RestaurantModel,
   UserModel,
   UserWithRestaurantModel,
-} = require("./models");
+} = require("./models/models");
+
+const { StrModelChoices } = require("./models/base");
 
 async function func() {
   await initDatabaseConnection();
+
+  const uwr = await UserWithRestaurantModel.objects();
+
+  const user_ids = uwr.map((val) => val.user);
+  console.log(user_ids);
+
+  // const users = await UserWithRestaurantModel.objects_including_deleted({
+  //   user: { $in: user_ids },
+  // }).populate("user");
+
+  // console.log(users);
+
+  return;
+
   user = await UserModel.get_object_including_deleted({
     id: "65385b8d19cbd81f936818b5",
   });
   await UserWithRestaurantModel({ user: user }).save();
-  return;
 
   user = await UserModel({ name: "b", uid: "bcdd", phoneNumber: "b" }).save();
 
