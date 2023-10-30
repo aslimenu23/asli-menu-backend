@@ -2,11 +2,12 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const initDatabaseConnection = require("./init_db");
 const logger = require("./logger");
+const userRouter = require("./routes/UserRoutes/userRoutes");
+const partnerRestaurantRouter = require("./routes/PartnerRoutes/restaurantRoutes");
 
 initDatabaseConnection();
 
 const app = express();
-exports.app = app;
 
 if (process.env.ENVIRONMENT == "dev") {
   const cors = require("cors");
@@ -15,8 +16,6 @@ if (process.env.ENVIRONMENT == "dev") {
 
 app.use(bodyParser.json());
 
-const userRouter = require("./routes/UserRoutes/userRoutes");
-const partnerRestaurantRouter = require("./routes/PartnerRoutes/restaurantRoutes");
 app.use("/user", userRouter);
 app.use("/partner/restaurant", partnerRestaurantRouter);
 

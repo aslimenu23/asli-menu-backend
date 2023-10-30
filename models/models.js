@@ -79,12 +79,12 @@ const RestaurantSchema = new BaseModelSchema({
   location: { type: LocationSchema, required: true },
   cuisines: { type: [String], default: [] },
   phoneNumbers: { type: [String], default: [] },
-  dineInDetails: { type: ServingDetailsSchema, default: {} },
-  takeAwayDetails: { type: ServingDetailsSchema, default: {} },
-  deliveryDetails: { type: DeliveryDetailsSchema, default: {} },
+  dineInDetails: { type: ServingDetailsSchema },
+  takeAwayDetails: { type: ServingDetailsSchema },
+  deliveryDetails: { type: DeliveryDetailsSchema },
 
   avgPrice: { type: Number },
-  facilities: { type: FacilitiesSchema, default: {} },
+  facilities: { type: FacilitiesSchema },
 
   menu: { type: [DishSchema], default: [] },
 
