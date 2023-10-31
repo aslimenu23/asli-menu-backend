@@ -35,10 +35,10 @@ router.get("/", async (req, res) => {
   const userRestaurants = await UserWithRestaurantModel.objects({
     user: req.user.id,
   });
-  const restaurant_ids = userRestaurants.map((element) => element.restaurant);
+  const restaurant_edit_ids = userRestaurants.map((element) => element.editRes);
 
   const editedRestaurants = await RestaurantEditModel.objects({
-    restaurant: { $in: restaurant_ids },
+    id: { $in: restaurant_edit_ids },
   });
 
   return res.status(200).json(editedRestaurants);
