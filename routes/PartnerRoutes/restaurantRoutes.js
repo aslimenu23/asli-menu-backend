@@ -46,7 +46,7 @@ router.get("/", async (req, res) => {
 
 router.get("/:id", async (req, res) => {
   const resEdit = await RestaurantEditModel.get_object({
-    restaurant: req.params.id,
+    id: req.params.id,
   });
   return res.status(200).json(resEdit);
 });
@@ -96,14 +96,14 @@ router.post("/", async (req, res) => {
   }
 
   await restaurant.save();
-  await RestaurantEditModel({
+  const resEdit = await RestaurantEditModel({
     editValue: restaurant,
     restaurant: restaurant.id,
   }).save();
 
   await UserWithRestaurantModel({
     user: req.user.id,
-    restaurant: restaurant.id,
+    resEdit: resEdit.id,
   }).save();
 
   return res.status(200).json(restaurant);
@@ -113,7 +113,7 @@ router.post("/:id", validateUserHasAccessToRestaurant, async (req, res) => {
   const body = req.body;
 
   const resEdit = RestaurantEditModel.get_object({
-    restaurant: req.params.id,
+    id: req.params.id,
   });
 
   // to avoid updating menu
@@ -160,7 +160,7 @@ router.post(
   async (req, res) => {
     // TODO: calculate if there are actually any changes in menu
     const resEdit = await RestaurantEditModel.get_object({
-      restaurant: req.params.id,
+      id: req.params.id,
     });
     resEdit.editValue.menu = req.body.menu;
     if (!resEdit.updatedFields?.length) resEdit.updatedFields = [];
@@ -180,7 +180,7 @@ router.post("/:id/state", validateAdminUser, async (req, res) => {
   const newState = req.body.state;
 
   const resEdit = await RestaurantEditModel.get_object({
-    restaurant: req.params.id,
+    id: req.params.id,
   });
 
   const restaurant = resEdit.restaurant;

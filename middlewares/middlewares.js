@@ -15,7 +15,7 @@ async function validateUserHasAccessToRestaurant(req, res, next) {
   if (!req.user.isAdmin) {
     const userWithRestaurant = await UserWithRestaurantModel.get_object({
       user: req.user.id,
-      restaurant: req.params.id,
+      resEdit: req.params.id,
     });
     if (!userWithRestaurant)
       return res

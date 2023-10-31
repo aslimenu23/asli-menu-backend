@@ -132,9 +132,9 @@ RestaurantEditSchema.pre("findOne", function () {
 
 const UserWithRestaurantSchema = new BaseModelSchema({
   user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
-  restaurant: {
+  resEdit: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "Restaurant",
+    ref: "RestaurantEdit",
     required: true,
   },
 });
