@@ -16,6 +16,20 @@ const { getCoordinatesFromGmapLink } = require("../../utils");
 const router = express.Router();
 router.use(validateUserMiddleware);
 
+function arraysAreEqual(arr1, arr2) {
+  if (!arr1 && !arr2) return true;
+
+  if (arr1.length !== arr2.length) {
+    return false;
+  }
+  for (let i = 0; i < arr1.length; i++) {
+    if (arr1[i] !== arr2[i]) {
+      return false;
+    }
+  }
+  return true;
+}
+
 function calculateCriticalRestaurantUpdateChanges(oldValue, newValue) {
   const updatedFields = [];
   if (oldValue.name != newValue.name) updatedFields.push("name");
@@ -23,12 +37,15 @@ function calculateCriticalRestaurantUpdateChanges(oldValue, newValue) {
     updatedFields.push("description");
   if (oldValue.location.gmapLink != newValue.location.gmapLink)
     updatedFields.push("gmapLink");
-  if (oldValue.cuisines != newValue.cuisines) updatedFields.push("cuisines");
-  if (oldValue.phoneNumbers != newValue.phoneNumbers)
+  if (!arraysAreEqual(oldValue.cuisines, newValue.cuisines))
+    updatedFields.push("cuisines");
+  if (!arraysAreEqual(oldValue.phoneNumbers, newValue.phoneNumbers))
     updatedFields.push("phoneNumbers");
   if (oldValue.avgPrice != newValue.avgPrice) updatedFields.push("avgPrice");
 
   // we don't check for dine in / takeaway / delivery details => those are auto-approved
+
+  return updatedFields;
 }
 
 router.get("/", async (req, res) => {
@@ -112,7 +129,7 @@ router.post("/", async (req, res) => {
 router.post("/:id", validateUserHasAccessToRestaurant, async (req, res) => {
   const body = req.body;
 
-  const resEdit = RestaurantEditModel.get_object({
+  const resEdit = await RestaurantEditModel.get_object({
     id: req.params.id,
   });
 
@@ -133,9 +150,14 @@ router.post("/:id", validateUserHasAccessToRestaurant, async (req, res) => {
       areaName: body.location.areaName,
       fullAddress: body.location.fullAddress,
     };
+  } else {
+    body.location = resEdit.editValue.location;
   }
 
-  const updatedCriticalFields = [...resEdit.updatedFields, ...currentChanges];
+  const updatedCriticalFields = [
+    ...(resEdit.updatedFields ?? []),
+    ...currentCriticalChanges,
+  ];
 
   resEdit.editValue = body;
 
