@@ -1,3 +1,4 @@
+const cors = require("cors");
 const express = require("express");
 const bodyParser = require("body-parser");
 const initDatabaseConnection = require("./init_db");
@@ -10,8 +11,13 @@ initDatabaseConnection();
 const app = express();
 
 if (process.env.ENVIRONMENT == "dev") {
-  const cors = require("cors");
   app.use(cors());
+} else {
+  app.use(
+    cors({
+      origin: ["https://partner.aslimenu.com"],
+    })
+  );
 }
 
 app.use(bodyParser.json());
