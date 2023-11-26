@@ -196,6 +196,23 @@ router.post(
   }
 );
 
+router.delete("/:id", validateUserHasAccessToRestaurant, async (req, res) => {
+  // delete RestaurantEditModel, Restaurant, UserWithRestaurantModel
+  const resEdit = await RestaurantEditModel.get_object({
+    id: req.params.id,
+  });
+
+  await (
+    await RestaurantModel.get_object({ id: resEdit.restaurant.id })
+  ).delete();
+  await (
+    await UserWithRestaurantModel.get_object({ resEdit: resEdit.id })
+  ).delete();
+
+  await resEdit.delete();
+  return res.status(200).json({});
+});
+
 // This API can only be accessed by special accounts (admins)
 // API to set the state of restaurant
 router.post("/:id/state", validateAdminUser, async (req, res) => {
