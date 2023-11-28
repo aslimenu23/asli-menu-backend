@@ -130,6 +130,15 @@ RestaurantEditSchema.pre("findOne", function () {
   this.populate("restaurant");
 });
 
+// deleting the related restaurant
+RestaurantEditSchema.pre("delete", async function () {
+  await this.restaurant.delete();
+});
+
+RestaurantEditSchema.pre("really_hard_delete", async function () {
+  await this.restaurant.really_hard_delete();
+});
+
 const UserWithRestaurantSchema = new BaseModelSchema({
   user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
   resEdit: {

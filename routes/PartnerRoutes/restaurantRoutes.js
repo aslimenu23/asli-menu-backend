@@ -201,16 +201,26 @@ router.delete("/:id", validateUserHasAccessToRestaurant, async (req, res) => {
   const resEdit = await RestaurantEditModel.get_object({
     id: req.params.id,
   });
-
-  await (
-    await RestaurantModel.get_object({ id: resEdit.restaurant.id })
-  ).delete();
-  await (
-    await UserWithRestaurantModel.get_object({ resEdit: resEdit.id })
-  ).delete();
-
   await resEdit.delete();
-  return res.status(200).json({});
+
+  const uwr = await UserWithRestaurantModel.get_object({
+    resEdit: req.params.id,
+  });
+
+  // Admin can delete any restaurant but we need userId of restaurant owner.
+  const userId = uwr.user;
+
+  await uwr.delete();
+
+  const remaininUserRestaurants =
+    (await UserWithRestaurantModel.objects({
+      user: userId,
+    }).populate("resEdit")) ?? [];
+  const remainingResEdits = remaininUserRestaurants.map(
+    (element) => element.resEdit
+  );
+
+  return res.status(200).json(remainingResEdits);
 });
 
 // This API can only be accessed by special accounts (admins)
