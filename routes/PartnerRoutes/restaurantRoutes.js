@@ -12,7 +12,7 @@ const {
 } = require("../../models/models");
 const { getCoordinatesFromGmapLink } = require("../../utils");
 
-// BASE PATH - /user/restaurant
+// BASE PATH - /partner/restaurant
 const router = express.Router();
 router.use(validateUserMiddleware);
 

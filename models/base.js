@@ -3,7 +3,7 @@ const { softCRUDPlugin } = require("./plugins");
 const Schema = mongoose.Schema;
 
 class EmbeddedDocSchema extends Schema {
-  // This Schema is used to created objects within models
+  // This Schema is used to create objects within models
   constructor(schema, options) {
     super(schema, options);
 

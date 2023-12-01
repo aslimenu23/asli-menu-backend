@@ -6,7 +6,8 @@
   "scripts": {
     "test": "",
     "start": "node app.js",
-    "start-local": "source config.dev.sh && node app.js"
+    "start-local": "source config.dev.sh && node app.js",
+    "local-test": "source config.dev.sh && node local_test.js"
   },
   "keywords": [],
   "author": "",

@@ -10,7 +10,7 @@ initDatabaseConnection();
 
 const app = express();
 
-if (process.env.ENVIRONMENT == "dev") {
+if (process.env.ENVIRONMENT == "development") {
   app.use(cors());
 } else {
   app.use(
