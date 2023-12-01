@@ -4,6 +4,11 @@ const {
   BaseModelSchema,
   StrModelChoices,
 } = require("./base");
+const logger = require("../logger");
+const {
+  DarkLaunchFeatureModel,
+  DarkLaunchFeatures,
+} = require("./dark_launch_features");
 
 const UserSchema = new BaseModelSchema({
   uid: { type: String, required: true },
@@ -139,6 +144,16 @@ RestaurantEditSchema.pre("really_hard_delete", async function () {
   await this.restaurant.really_hard_delete();
 });
 
+// updating restaurant choices on save
+RestaurantEditSchema.post("save", async function (resEdit, next) {
+  await updateRestaurantChoices(resEdit);
+  next();
+});
+RestaurantEditSchema.post("update", async function (resEdit, next) {
+  await updateRestaurantChoices(resEdit);
+  next();
+});
+
 const UserWithRestaurantSchema = new BaseModelSchema({
   user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
   resEdit: {
@@ -146,6 +161,12 @@ const UserWithRestaurantSchema = new BaseModelSchema({
     ref: "RestaurantEdit",
     required: true,
   },
+});
+
+const RestaurantChoicesSchema = new BaseModelSchema({
+  cuisines: { type: [String], default: [] },
+  dishCategories: { type: [String], default: [] },
+  dishNames: { type: [String], default: [] },
 });
 
 const UserModel = mongoose.model("User", UserSchema);
@@ -160,10 +181,62 @@ const RestaurantEditModel = mongoose.model(
   RestaurantEditSchema
 );
 
+const RestaurantChoicesModel = mongoose.model(
+  "RestaurantChoices",
+  RestaurantChoicesSchema
+);
+
+async function updateRestaurantChoices(resEdit) {
+  try {
+    // only if changes are approved/active then update the choices
+    // or if the dark launch flag is enabled
+    if (
+      !(
+        [RestaurantState.APPROVED, RestaurantState.ACTIVE].includes(
+          resEdit.state
+        ) ||
+        (await DarkLaunchFeatureModel.isEnabled(
+          DarkLaunchFeatures.IGNORE_STATE_FOR_RES_CHOICES
+        ))
+      )
+    ) {
+      return;
+    }
+
+    // there should only be a single object for this model
+    let restaurantChoices = await RestaurantChoicesModel.get_object();
+    if (!restaurantChoices) {
+      restaurantChoices = new RestaurantChoicesModel();
+    }
+
+    const cuisines = new Set(restaurantChoices.cuisines);
+    const dishCategories = new Set(restaurantChoices.dishCategories);
+    const dishNames = new Set(restaurantChoices.dishNames);
+
+    // taking new choices from editValue
+    const editValue = resEdit.editValue;
+
+    editValue.cuisines.forEach((element) => cuisines.add(element));
+    editValue.menu.forEach((element) => {
+      dishCategories.add(element.category);
+      dishNames.add(element.name);
+    });
+
+    restaurantChoices.cuisines = Array.from(cuisines);
+    restaurantChoices.dishCategories = Array.from(dishCategories);
+    restaurantChoices.dishNames = Array.from(dishNames);
+
+    await restaurantChoices.save();
+  } catch (error) {
+    logger.error(error.stack);
+  }
+}
+
 module.exports = {
   RestaurantEditModel,
   RestaurantModel,
   UserModel,
   UserWithRestaurantModel,
   RestaurantState,
+  RestaurantChoicesModel,
 };

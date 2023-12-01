@@ -9,10 +9,11 @@ const {
   UserWithRestaurantModel,
   RestaurantEditModel,
   RestaurantState,
+  RestaurantChoicesModel,
 } = require("../../models/models");
 const { getCoordinatesFromGmapLink } = require("../../utils");
 
-// BASE PATH - /user/restaurant
+// BASE PATH - /partner/restaurant
 const router = express.Router();
 router.use(validateUserMiddleware);
 
@@ -59,6 +60,11 @@ router.get("/", async (req, res) => {
   });
 
   return res.status(200).json(editedRestaurants);
+});
+
+router.get("/restaurant_choices", async (req, res) => {
+  const restaurantChoices = await RestaurantChoicesModel.get_object();
+  return res.status(200).json(restaurantChoices ?? {});
 });
 
 router.get("/:id", async (req, res) => {
@@ -259,7 +265,7 @@ router.post("/:id/state", validateAdminUser, async (req, res) => {
   resEdit.state = newState;
   await resEdit.save();
 
-  return res.status(200).send(resEdit);
+  return res.status(200).json(resEdit);
 });
 
 module.exports = router;
