@@ -11,43 +11,15 @@ const {
   RestaurantState,
   RestaurantChoicesModel,
 } = require("../../models/models");
-const { getCoordinatesFromGmapLink } = require("../../utils");
+const {
+  getCoordinatesFromGmapLink,
+  calculateCriticalRestaurantUpdateChanges,
+} = require("../../utils");
+const { DEFAULT_RESTAURANT_CHOICES } = require("../../constants");
 
 // BASE PATH - /partner/restaurant
 const router = express.Router();
 router.use(validateUserMiddleware);
-
-function arraysAreEqual(arr1, arr2) {
-  if (!arr1 && !arr2) return true;
-
-  if (arr1.length !== arr2.length) {
-    return false;
-  }
-  for (let i = 0; i < arr1.length; i++) {
-    if (arr1[i] !== arr2[i]) {
-      return false;
-    }
-  }
-  return true;
-}
-
-function calculateCriticalRestaurantUpdateChanges(oldValue, newValue) {
-  const updatedFields = [];
-  if (oldValue.name != newValue.name) updatedFields.push("name");
-  if (oldValue.description != newValue.description)
-    updatedFields.push("description");
-  if (oldValue.location.gmapLink != newValue.location.gmapLink)
-    updatedFields.push("gmapLink");
-  if (!arraysAreEqual(oldValue.cuisines, newValue.cuisines))
-    updatedFields.push("cuisines");
-  if (!arraysAreEqual(oldValue.phoneNumbers, newValue.phoneNumbers))
-    updatedFields.push("phoneNumbers");
-  if (oldValue.avgPrice != newValue.avgPrice) updatedFields.push("avgPrice");
-
-  // we don't check for dine in / takeaway / delivery details => those are auto-approved
-
-  return updatedFields;
-}
 
 router.get("/", async (req, res) => {
   const userRestaurants = await UserWithRestaurantModel.objects({
@@ -64,7 +36,7 @@ router.get("/", async (req, res) => {
 
 router.get("/restaurant_choices", async (req, res) => {
   const restaurantChoices = await RestaurantChoicesModel.get_object();
-  return res.status(200).json(restaurantChoices ?? {});
+  return res.status(200).json(restaurantChoices ?? DEFAULT_RESTAURANT_CHOICES);
 });
 
 router.get("/:id", async (req, res) => {

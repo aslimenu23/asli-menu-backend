@@ -21,7 +21,7 @@ const LocationSchema = new BaseSchema({
   fullAddress: { type: String },
 });
 
-const DishTypeEnum = ["veg", "veg_egg", "non_veg"];
+const DishTypeEnum = ["Veg", "Veg_egg", "Non_veg"];
 
 const DishSchema = new BaseSchema({
   name: { type: String, required: true },
