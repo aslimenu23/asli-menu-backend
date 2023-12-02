@@ -55,7 +55,7 @@ const RestaurantState = StrModelChoices([
   "ACTIVE",
   "IN_ACTIVE",
 ]);
-const DishType = StrModelChoices(["veg", "veg_egg", "non_veg"]);
+const DishType = StrModelChoices(["Veg", "Veg_egg", "Non_veg"]);
 
 const DishSchema = new EmbeddedDocSchema({
   name: { type: String, required: true },

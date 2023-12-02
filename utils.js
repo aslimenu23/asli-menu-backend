@@ -11,4 +11,41 @@ const getCoordinatesFromGmapLink = async (mapLink) => {
   return { lat, long };
 };
 
-module.exports = { getCoordinatesFromGmapLink };
+
+function arraysAreEqual(arr1, arr2) {
+  if (!arr1 && !arr2) return true;
+
+  if (arr1.length !== arr2.length) {
+    return false;
+  }
+  for (let i = 0; i < arr1.length; i++) {
+    if (arr1[i] !== arr2[i]) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function calculateCriticalRestaurantUpdateChanges(oldValue, newValue) {
+  const updatedFields = [];
+  if (oldValue.name != newValue.name) updatedFields.push("name");
+  if (oldValue.description != newValue.description)
+    updatedFields.push("description");
+  if (oldValue.location.gmapLink != newValue.location.gmapLink)
+    updatedFields.push("gmapLink");
+  if (!arraysAreEqual(oldValue.cuisines, newValue.cuisines))
+    updatedFields.push("cuisines");
+  if (!arraysAreEqual(oldValue.phoneNumbers, newValue.phoneNumbers))
+    updatedFields.push("phoneNumbers");
+  if (oldValue.avgPrice != newValue.avgPrice) updatedFields.push("avgPrice");
+
+  // we don't check for dine in / takeaway / delivery details => those are auto-approved
+
+  return updatedFields;
+}
+
+module.exports = {
+  arraysAreEqual,
+  getCoordinatesFromGmapLink,
+  calculateCriticalRestaurantUpdateChanges,
+};
