@@ -37,7 +37,7 @@ const ServingDetailsSchema = new EmbeddedDocSchema({
 
 const DeliveryDetailsSchema = ServingDetailsSchema.clone().add({
   freeDeliveryDistance: { type: Number },
-  minAmount: { type: Number },
+  deliveryFee: { type: Number },
   maxDeliveryDistance: { type: Number },
 });
 
@@ -75,7 +75,7 @@ const RestaurantMetadataSchema = new EmbeddedDocSchema({
   onboardedOn: { type: Date, default: Date.now },
   subscriptionExpiresOn: { type: Date },
   isFreeSubscription: { type: Boolean },
-  isManaged: { type: Boolean },
+  isManagedByOwner: { type: Boolean },
 });
 
 const RestaurantSchema = new BaseModelSchema({
