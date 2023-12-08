@@ -53,7 +53,7 @@ router.post("/", async (req, res) => {
     name: body.name,
     description: body.description,
     cuisines: body.cuisines,
-    contacts: body.contacts,
+    phoneNumbers: body.phoneNumbers,
     avgPrice: body.avgPrice,
     facilities: body.facilities,
     metadata: body.metadata,
