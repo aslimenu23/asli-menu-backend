@@ -7,7 +7,7 @@ const dummyDishes = [
       "Plum tomato and buffalo mozzarella, basil pesto, pine nuts, extra virgin olive oil",
     price: "395",
     category: "INSALATA / SALADS",
-    dishType: "Veg",
+    dishType: "VEG",
   },
   {
     name: "Insalata Di Caesar",
@@ -15,21 +15,21 @@ const dummyDishes = [
       "Ice burg and romaine lettuce, herbed chicken, garlic croutons, and parmesan cheese, poached egg",
     price: "395",
     category: "INSALATA / SALADS",
-    dishType: "Veg",
+    dishType: "VEG",
   },
   {
     name: "Spaghetti Aglio Olid Gamberi",
     description: "Sphagetti tossed in olive oil, garlic, chilli, herbs etc.",
     price: "535",
     category: "PASTA E RISOTTI",
-    dishType: "Non_veg",
+    dishType: "NON_VEG",
   },
   {
     name: "Penne Milanese",
     description: "Penne with chicken, mushroom, oregano etc.",
     price: "485",
     category: "PASTA E RISOTTI",
-    dishType: "Non_veg",
+    dishType: "NON_VEG",
     specialTag: "Bestseller",
   },
 
@@ -38,7 +38,7 @@ const dummyDishes = [
     description: "Tomato sauce, mozzarella, smoked salmon, onion, capers",
     price: "655",
     category: "SELECTION OF PIZZA",
-    dishType: "Non_veg",
+    dishType: "NON_VEG",
   },
   {
     name: "Pollo Funghi Spinaci",
@@ -46,14 +46,14 @@ const dummyDishes = [
       "Tomato sauce, mozzarella, pesto chicken, spinach, olives, sun-dried tomatoes",
     price: "585",
     category: "SELECTION OF PIZZA",
-    dishType: "Non_veg",
+    dishType: "NON_VEG",
   },
   {
     name: "Tiramisu",
     description: "Italian mascarpone, lavazza espresso, coffee ice cream",
     price: "295",
     category: "DOLCI / DESSERTS",
-    dishType: "Veg",
+    dishType: "VEG",
     specialTag: "Bestseller",
   },
   {
@@ -61,7 +61,7 @@ const dummyDishes = [
     description: "Classcic creme brulee with orange zest",
     price: "295",
     category: "DOLCI / DESSERTS",
-    dishType: "Veg",
+    dishType: "VEG",
   },
 ];
 
