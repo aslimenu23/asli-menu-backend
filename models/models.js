@@ -37,7 +37,6 @@ const ServingDetailsSchema = new EmbeddedDocSchema({
 
 const DeliveryDetailsSchema = ServingDetailsSchema.clone().add({
   freeDeliveryDistance: { type: Number },
-  deliveryFee: { type: Number },
   maxDeliveryDistance: { type: Number },
 });
 
@@ -85,7 +84,7 @@ const RestaurantSchema = new BaseModelSchema({
   cuisines: { type: [String], default: [] },
   phoneNumbers: { type: [String], default: [] },
   dineInDetails: { type: ServingDetailsSchema },
-  takeAwayDetails: { type: ServingDetailsSchema },
+  takeawayDetails: { type: ServingDetailsSchema },
   deliveryDetails: { type: DeliveryDetailsSchema },
 
   avgPrice: { type: Number },

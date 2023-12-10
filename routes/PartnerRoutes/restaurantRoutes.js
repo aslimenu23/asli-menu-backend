@@ -55,6 +55,9 @@ router.post("/", async (req, res) => {
     cuisines: body.cuisines,
     phoneNumbers: body.phoneNumbers,
     avgPrice: body.avgPrice,
+    dineInDetails: body.dineInDetails,
+    deliveryDetails: body.deliveryDetails,
+    takeawayDetails: body.takeawayDetails,
     facilities: body.facilities,
     metadata: body.metadata,
   });
@@ -70,25 +73,6 @@ router.post("/", async (req, res) => {
     fullAddress: body.location.fullAddress,
   };
   restaurant.location = location;
-
-  restaurant.dineInDetails = body.dineInDetails;
-
-  if (body.takeAwayDetails) {
-    if (body.takeAwayDetails.sameAsDineIn) {
-      delete body.takeAwayDetails.sameAsDineIn;
-      restaurant.takeAwayDetails = restaurant.dineInDetails;
-    } else restaurant.takeAwayDetails = body.takeAwayDetails;
-  }
-
-  if (body.deliveryDetails) {
-    if (body.deliveryDetails.sameAsDineIn) {
-      delete body.deliveryDetails.sameAsDineIn;
-      restaurant.deliveryDetails = {
-        ...restaurant.dineInDetails,
-        ...body.deliveryDetails,
-      };
-    } else restaurant.takeAwayDetails = body.takeAwayDetails;
-  }
 
   await restaurant.save();
   const resEdit = await RestaurantEditModel({
